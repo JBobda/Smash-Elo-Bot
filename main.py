@@ -96,13 +96,15 @@ async def declare_match(ctx, winner_tag, loser_tag):
 async def reset_elo(ctx):
     members = ctx.message.author.server.members
     channel = ctx.message.channel
+    role = discord.utils.find(lambda r: r.name == 'smash', ctx.message.author.server.roles)
     await client.send_message(channel, "RESETTING...");
     for member in members:
+        has_smash_role = role in member.roles
         firebase.put('/', '/members/' + member.id + '/',
         { 
             'name': member.name,
             'elo_score': 1000,
-            'has_smash_role': True
+            'has_smash_role': has_smash_role
         })
         print(member.id)
     await client.send_message(channel, "ELO RESET HAS BEEN COMPLETED")
@@ -119,6 +121,10 @@ async def update(ctx):
     channel = ctx.message.channel
     role = discord.utils.find(lambda r: r.name == 'smash', server.roles)
     await client.send_message(channel, "UPDATING...");
+    await update_helper(server, role)
+    await client.send_message(channel, "UPDATE HAS BEEN COMPLETED")
+
+async def update_helper(server, role):
     for member in server.members:
         has_smash_role = role in member.roles
         elo_score = firebase.get('/members/' + member.id + '/elo_score', None)
@@ -129,7 +135,6 @@ async def update(ctx):
             'has_smash_role': has_smash_role
         })
         print(member.id)
-    await client.send_message(channel, "UPDATE HAS BEEN COMPLETED")
 
 @client.event
 async def on_ready():
