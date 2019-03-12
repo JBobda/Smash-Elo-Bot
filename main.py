@@ -74,15 +74,20 @@ async def declare_match(ctx, winner_tag, loser_tag):
     winner_elo = firebase.get('/members/' + winner.id + '/elo_score', None)
     loser_elo = firebase.get('/members/' + loser.id + '/elo_score', None)
     winner_rating, loser_rating = calculate_elo(30, winner_elo, loser_elo)
+    role = discord.utils.find(lambda r: r.name == 'smash', author.server.roles)
+    winner_smash_role = role in winner.roles
+    loser_smash_role = role in loser.roles
     firebase.put('/', '/members/' + winner.id + '/',
     { 
         'name': winner.name,
-        'elo_score': winner_rating
+        'elo_score': winner_rating,
+        'has_smash_role': winner_smash_role
     })
     firebase.put('/', '/members/' + loser.id + '/',
     { 
         'name': loser.name,
-        'elo_score': loser_rating
+        'elo_score': loser_rating,
+        'has_smash_role': loser_smash_role
     })
     await client.send_message(channel, "{} : {}\n{} : {}".format(winner.name, winner_rating, loser.name, loser_rating))
 
